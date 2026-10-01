@@ -1,7 +1,7 @@
 {
   "handle": "@singularstate",
   "bible_file": "data/bsb.txt",
-  "translation_label": "BSB",
+  "translation_label": "",
   "start_date": "2026-10-02",
   "timezone": "Australia/Perth",
   "image": {

@@ -172,18 +172,23 @@ def render_card(verse, out_path):
     y += 60
     draw.line([(w / 2 - 50, y), (w / 2 + 50, y)], fill=accent, width=3)
     y += 50
-    reference = f"{verse['reference']} ({CONFIG['translation_label']})"
-    draw.text((w / 2, y), reference, font=ref_font, fill=accent, anchor="ma")
+    draw.text((w / 2, y), labelled(verse), font=ref_font, fill=accent, anchor="ma")
     draw.text((w / 2, h - 90), CONFIG["handle"], font=handle_font, fill=accent, anchor="ma")
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img.save(out_path, "JPEG", quality=92)
 
 
+def labelled(verse):
+    """'John 3:16', or 'John 3:16 (BSB)' when translation_label is set."""
+    label = CONFIG.get("translation_label", "").strip()
+    return f"{verse['reference']} ({label})" if label else verse["reference"]
+
+
 def caption_for(verse):
     return "\n\n".join([
         verse["text"],
-        f"{verse['reference']} ({CONFIG['translation_label']})",
+        labelled(verse),
         CONFIG["attribution"],
         " ".join(CONFIG["hashtags"]),
     ])
@@ -263,7 +268,7 @@ def main():
             "date": str(day),
             "reference": verse["reference"],
             "caption": caption_for(verse),
-            "alt_text": f"{verse['reference']} ({CONFIG['translation_label']}): {verse['text']}",
+            "alt_text": f"{labelled(verse)}: {verse['text']}",
         }
         (POSTS / f"{day}.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"Rendered {verse['reference']} for {day}.")
