@@ -1,0 +1,27 @@
+{
+  "handle": "@singularstate",
+  "bible_file": "data/bsb.txt",
+  "translation_label": "BSB",
+  "start_date": "2026-10-02",
+  "timezone": "Australia/Perth",
+  "image": {
+    "width": 1080,
+    "height": 1350,
+    "gradient_top": "#F4EFE6",
+    "gradient_bottom": "#E3D8C6",
+    "text_colour": "#2E2A24",
+    "accent_colour": "#8A7356",
+    "verse_font": "fonts/Lora.ttf",
+    "reference_font": "fonts/Lora-Italic.ttf",
+    "fallback_font": "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"
+  },
+  "hashtags": [
+    "#verseoftheday",
+    "#bibleverse",
+    "#scripture",
+    "#dailydevotional",
+    "#faith",
+    "#BSB"
+  ],
+  "attribution": "Scripture from the Berean Standard Bible (BSB), public domain."
+}

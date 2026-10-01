@@ -1,0 +1,75 @@
+name: Daily verse
+
+on:
+  schedule:
+    - cron: "30 23 * * *" # 07:30 Perth time (AWST is UTC+8 all year)
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Date to post, YYYY-MM-DD (blank = today in Perth)"
+        required: false
+      publish:
+        description: "Publish to Instagram (untick to only render and commit the image)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency: daily-verse
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download fonts (Lora, SIL Open Font License)
+        run: |
+          mkdir -p fonts
+          curl -fsSL -o fonts/Lora.ttf "https://github.com/google/fonts/raw/main/ofl/lora/Lora%5Bwght%5D.ttf" \
+            && curl -fsSL -o fonts/Lora-Italic.ttf "https://github.com/google/fonts/raw/main/ofl/lora/Lora-Italic%5Bwght%5D.ttf" \
+            || echo "::warning::Font download failed; using the DejaVu Serif fallback"
+
+      - name: Pick the date
+        run: echo "DAY=${INPUT_DATE:-$(TZ=Australia/Perth date +%F)}" >> "$GITHUB_ENV"
+        env:
+          INPUT_DATE: ${{ inputs.date }}
+
+      - name: Check the verse list
+        run: python post.py check
+
+      - name: Render the card
+        run: python post.py render --date "$DAY"
+
+      - name: Commit the image so Instagram can fetch it
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add posts
+          git diff --cached --quiet || git commit -m "Verse for $DAY"
+          git push
+          sleep 15
+
+      - name: Publish to Instagram
+        if: github.event_name == 'schedule' || inputs.publish
+        env:
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IMAGE_BASE_URL: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.ref_name }}
+        run: python post.py publish --date "$DAY"
+
+      - name: Record that the day is posted
+        if: github.event_name == 'schedule' || inputs.publish
+        run: |
+          git add posts
+          git diff --cached --quiet || git commit -m "Posted $DAY"
+          git push
